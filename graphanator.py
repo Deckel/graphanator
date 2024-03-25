@@ -25,7 +25,7 @@ load_dotenv()
 def seperate_cmd(text) -> dict:
   # returns a dictonary of message and command, if command is not found return message and None
     try:
-      pattern = r'```python([\s\S]*?)```'
+      pattern = r'```python([\s\S]*?)```|```([\s\S]*?)```'
       response = re.sub(pattern, "", text)
       command = re.search(pattern, text, re.DOTALL).group(1)
       resp_dict = {
@@ -57,6 +57,8 @@ class Conversation():
     self.total_session_credits = 0
     self.response = None
     self.messages = []
+    self.attempt = 0
+    self.attempt_limit = 5
     
     self.context = context
     self.client = self.initiaise_connection()
@@ -103,9 +105,10 @@ class Conversation():
     logger.info(self.response)
 
 
-  def message(self) -> None:
-    # get message
-    self.messages.append({"role": "user", "content": input(f"message: \n")})
+  def message(self, role, message) -> None:
+    # append message
+    self.messages.append({"role": role, "content": message})
+    
     # get completion of conversation
     completion = self.client.chat.completions.create(
       model="gpt-3.5-turbo",
@@ -136,8 +139,20 @@ class Conversation():
       context = {}
       logger.debug("Executing Python...")
       exec(cleaned_cmd, context)
+      self.attempt = 0
     except Exception as e:
-      print(e)
+      # itterate attempt counter
+      self.attempt += 1
+      # if max attempt reach reset conversation, otherwise retry
+      if self.attempt == self.attempt_limit:
+        logger.critical(f"Maximum attempts reached, resetting conversation...")
+        self.messages = []
+        self.process_context()
+      else:
+        logger.critical(f"Execution failed on attempt {self.attempt} with error: \n{e}")
+        self.message('user', 'The code failed with the error please rewrite the code to fix it: {e}')
+        logger.critical(f"Regenerating...")
+        conversation.execute_code()
 
 if __name__ == '__main__':
   # get path of latest file added to the folder data
@@ -147,11 +162,10 @@ if __name__ == '__main__':
   conversation = Conversation(
     context = df
   )
-  
+
   while True:  
     # message the bot
-    conversation.message()
-    
+    conversation.message('user', input(f"message: \n"))
     # if we found a command execute it
     if conversation.response["command"]:
       conversation.execute_code()
