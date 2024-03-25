@@ -28,17 +28,12 @@ def seperate_cmd(text) -> dict:
       pattern = r'```python([\s\S]*?)```'
       response = re.sub(pattern, "", text)
       command = re.search(pattern, text, re.DOTALL).group(1)
-
-      # logger.error(text)
-      # logger.error(response)
-      # logger.error(command)
-
       resp_dict = {
         "response": response,
         "command": command
       }
     except Exception as e:
-      logger.warning(f"Could not find code block: {e}")
+      logger.warning(f"Could not find code block")
       resp_dict = {
         "response": text,
         "command": None
@@ -139,6 +134,7 @@ class Conversation():
       # print(cleaned_cmd)
       plt.close()
       context = {}
+      logger.debug("Executing Python...")
       exec(cleaned_cmd, context)
     except Exception as e:
       print(e)
@@ -155,6 +151,7 @@ if __name__ == '__main__':
   while True:  
     # message the bot
     conversation.message()
-    # print response
-    # logger.info(conversation.response)
-    conversation.execute_code()
+    
+    # if we found a command execute it
+    if conversation.response["command"]:
+      conversation.execute_code()
