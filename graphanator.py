@@ -1,8 +1,10 @@
 from openai import OpenAI
 from time import time
 from dotenv import load_dotenv
+from matplotlib.pyplot import plot, draw, show
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import logging
 import re
 import os
@@ -110,19 +112,19 @@ class Conversation():
     }
 
   def execute_code(self):
-    # print("-"*15)
-    # print(f'EXECUTING CODE: \n {self.response["command"]}')
-    # print("-"*15)
     try:
-      print(self.response["command"])
-      exec(self.response["command"])
+      # get rid of the plt.show() and replace it with draw()
+      cleaned_cmd = self.response["command"].replace("plt.show()","plt.ion()\nplt.show()")
+      # re add plt.show()
+      print(cleaned_cmd)
+      plt.close()
+      exec(cleaned_cmd)
     except Exception as e:
       print(e)
 
   # prints the latest message
   def print_message(self):
     print(self.response["message"])
-
 
 if __name__ == '__main__':
   # get path of latest file added to the folder data
