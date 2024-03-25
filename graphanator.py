@@ -2,6 +2,7 @@ from openai import OpenAI
 from time import time
 from dotenv import load_dotenv
 from matplotlib.pyplot import plot, draw, show
+from custom_logger import CustomFormatter
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,18 +10,26 @@ import logging
 import re
 import os
 
+# create logger with '__name__'
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(CustomFormatter())
+logger.addHandler(ch)
+
+# take environment variables from .env
 load_dotenv()
 
 def extract_code_block(text):
-    pattern = r"```python(.*?)```"
-    code_block = re.search(pattern, text, re.DOTALL)
-    if code_block:
-        return code_block.group(1)
-    else:
-        return "No code block found"
-
-
+    try:
+      pattern = r"```python(.*?)```"
+      code_block = re.search(pattern, text, re.DOTALL)
+      return code_block.group(1)
+    except Exception as e:
+      logger.warning(f"Could not find code block: {e}")
+    
 def get_latest_file(directory):
     # Get list of files in directory with their creation time
     files = [(file, os.path.getctime(os.path.join(directory, file))) for file in os.listdir(directory)]
@@ -78,16 +87,12 @@ class Conversation():
     )
     #update total_credits
     self.total_session_credits += completion.usage.total_tokens
-    # get reponse in json
-    self.response = {
-      "message": completion.choices[0].message.content,
-      "command": extract_code_block(completion.choices[0].message.content)
-    }
-
-    self.print_message()
+    self.response = completion.choices[0].message.content
+    # log message
+    logger.info(self.response)
 
 
-  def send_message(self):
+  def message(self) -> None:
     # get message
     self.messages.append({"role": "user", "content": input(f"message: \n")})
 
@@ -105,25 +110,24 @@ class Conversation():
     )
     #update total_credits
     self.total_session_credits += completion.usage.total_tokens
-    # get reponse in json
-    self.response = {
-      "message": completion.choices[0].message.content,
-      "command": extract_code_block(completion.choices[0].message.content)
-    }
-
+    # update reponse
+    self.response = completion.choices[0].message.content
+  
   def execute_code(self):
     try:
+      cmd = extract_code_block(self.response)
       # get rid of the plt.show() and replace it with draw()
-      cleaned_cmd = self.response["command"].replace("plt.show()","plt.ion()\nplt.show()")
+      cleaned_cmd = cmd.replace("plt.show()","plt.ion()\nplt.show()")
       # re add plt.show()
       print(cleaned_cmd)
       plt.close()
-      exec(cleaned_cmd)
+      context = {}
+      exec(cleaned_cmd, context)
     except Exception as e:
       print(e)
 
   # prints the latest message
-  def print_message(self):
+  def response(self):
     print(self.response["message"])
 
 if __name__ == '__main__':
@@ -136,6 +140,8 @@ if __name__ == '__main__':
   )
   
   while True:  
-    conversation.send_message()
-    conversation.print_message()
+    # message the bot
+    conversation.message()
+    # print response
+    logger.info(conversation.response)
     conversation.execute_code()
