@@ -19,8 +19,13 @@ def extract_code_block(text):
         return "No code block found"
 
 
-messages = []
-total_credits_used = 0
+def get_latest_file(directory):
+    # Get list of files in directory with their creation time
+    files = [(file, os.path.getctime(os.path.join(directory, file))) for file in os.listdir(directory)]
+    # Sort files based on creation time in descending order
+    sorted_files = sorted(files, key=lambda x: x[1], reverse=True)
+    return sorted_files
+    
 
 
 class Conversation():
@@ -45,7 +50,8 @@ class Conversation():
         "role": "system", 
         "content":
             f"""
-              You are my Personal Analyst, take this csv "PremierLeague.csv"', and its columns {self.context.dtypes}.
+              You are my Personal Analyst, take this csv "{get_latest_file(f"{os.getcwd()}/data")[0][0]}"', 
+              and its columns {self.context.dtypes}.
               First introduce yourself, then give me a brief description on what this csv represents.
               Then suggest 3 graphs I could make to understand the dataset.
 
@@ -108,6 +114,7 @@ class Conversation():
     # print(f'EXECUTING CODE: \n {self.response["command"]}')
     # print("-"*15)
     try:
+      print(self.response["command"])
       exec(self.response["command"])
     except Exception as e:
       print(e)
@@ -118,8 +125,9 @@ class Conversation():
 
 
 if __name__ == '__main__':
-
-  df = pd.read_csv('data/PremierLeague.csv')
+  # get path of latest file added to the folder data
+  f_path = 'data/' + get_latest_file(f"{os.getcwd()}/data")[0][0]
+  df = pd.read_csv(f_path)
 
   conversation = Conversation(
     context = df
