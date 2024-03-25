@@ -6,6 +6,8 @@ from custom_logger import CustomFormatter
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import signal
+import sys
 import logging
 import re
 import os
@@ -21,6 +23,11 @@ logger.addHandler(ch)
 
 # take environment variables from .env
 load_dotenv()
+
+def sig_handler(signal_number, stack_frame):
+    logger.error('Exiting script')
+    plt.close("all")
+    sys.exit(-1)
 
 def seperate_cmd(text) -> dict:
   # returns a dictonary of message and command, if command is not found return message and None
@@ -155,6 +162,8 @@ class Conversation():
         conversation.execute_code()
 
 if __name__ == '__main__':
+  signal.signal(signal.SIGINT, sig_handler)
+  signal.signal(signal.SIGTSTP, sig_handler)
   # get path of latest file added to the folder data
   f_path = 'data/' + get_latest_file(f"{os.getcwd()}/data")[0][0]
   df = pd.read_csv(f_path)
@@ -169,3 +178,6 @@ if __name__ == '__main__':
     # if we found a command execute it
     if conversation.response["command"]:
       conversation.execute_code()
+  
+    
+
