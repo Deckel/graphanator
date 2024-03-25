@@ -4,3 +4,4 @@ config.env
 sandbox.ipynb
 __pycache__
 .ipynb_checkpoints
+ideas.txt
