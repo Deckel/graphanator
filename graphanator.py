@@ -22,13 +22,29 @@ logger.addHandler(ch)
 # take environment variables from .env
 load_dotenv()
 
-def extract_code_block(text):
+def seperate_cmd(text) -> dict:
+  # returns a dictonary of message and command, if command is not found return message and None
     try:
-      pattern = r"```python(.*?)```"
-      code_block = re.search(pattern, text, re.DOTALL)
-      return code_block.group(1)
+      pattern = r'```python([\s\S]*?)```'
+      response = re.sub(pattern, "", text)
+      command = re.search(pattern, text, re.DOTALL).group(1)
+
+      # logger.error(text)
+      # logger.error(response)
+      # logger.error(command)
+
+      resp_dict = {
+        "response": response,
+        "command": command
+      }
     except Exception as e:
       logger.warning(f"Could not find code block: {e}")
+      resp_dict = {
+        "response": text,
+        "command": None
+      }
+    return resp_dict
+
     
 def get_latest_file(directory):
     # Get list of files in directory with their creation time
@@ -95,7 +111,6 @@ class Conversation():
   def message(self) -> None:
     # get message
     self.messages.append({"role": "user", "content": input(f"message: \n")})
-
     # get completion of conversation
     completion = self.client.chat.completions.create(
       model="gpt-3.5-turbo",
@@ -111,24 +126,22 @@ class Conversation():
     #update total_credits
     self.total_session_credits += completion.usage.total_tokens
     # update reponse
-    self.response = completion.choices[0].message.content
+    self.response = resp_dict = seperate_cmd(completion.choices[0].message.content)
+    # log the response
+    logger.info(self.response["response"])
   
   def execute_code(self):
     try:
-      cmd = extract_code_block(self.response)
+      cmd = self.response["command"]
       # get rid of the plt.show() and replace it with draw()
       cleaned_cmd = cmd.replace("plt.show()","plt.ion()\nplt.show()")
       # re add plt.show()
-      print(cleaned_cmd)
+      # print(cleaned_cmd)
       plt.close()
       context = {}
       exec(cleaned_cmd, context)
     except Exception as e:
       print(e)
-
-  # prints the latest message
-  def response(self):
-    print(self.response["message"])
 
 if __name__ == '__main__':
   # get path of latest file added to the folder data
@@ -143,5 +156,5 @@ if __name__ == '__main__':
     # message the bot
     conversation.message()
     # print response
-    logger.info(conversation.response)
+    # logger.info(conversation.response)
     conversation.execute_code()
