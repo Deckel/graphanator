@@ -65,7 +65,7 @@ class Conversation():
     self.response = None
     self.messages = []
     self.attempt = 0
-    self.attempt_limit = 5
+    self.attempt_limit = 4
     
     self.context = context
     self.client = self.initiaise_connection()
@@ -138,10 +138,8 @@ class Conversation():
   def execute_code(self):
     try:
       cmd = self.response["command"]
-      # get rid of the plt.show() and replace it with draw()
+      # get rid of the plt.show() and replace it with plt.ion()
       cleaned_cmd = cmd.replace("plt.show()","plt.ion()\nplt.show()")
-      # re add plt.show()
-      # print(cleaned_cmd)
       plt.close()
       context = {}
       logger.debug("Executing Python...")
@@ -152,9 +150,9 @@ class Conversation():
       self.attempt += 1
       # if max attempt reach reset conversation, otherwise retry
       if self.attempt == self.attempt_limit:
-        logger.critical(f"Maximum attempts reached, resetting conversation...")
-        self.messages = []
-        self.process_context()
+        logger.critical(f"Maximum attempts reached, resetting conversation to last message...")    
+        self.messages = self.messages[:-(self.attempt+self.attempt_limit)]
+        logger.info(self.messages[-1]["content"])
       else:
         logger.critical(f"Execution failed on attempt {self.attempt} with error: \n{e}")
         self.message('user', 'The code failed with the error please rewrite the code to fix it: {e}')
@@ -178,6 +176,3 @@ if __name__ == '__main__':
     # if we found a command execute it
     if conversation.response["command"]:
       conversation.execute_code()
-  
-    
-
