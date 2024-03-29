@@ -1,7 +1,15 @@
+# csv files
 data/*
+
+# enviroment files
 .env
 config.env
-sandbox.ipynb
+venv/*
+
+# vscode
 __pycache__
 .ipynb_checkpoints
+
+# testing
+sandbox.ipynb
 ideas.txt
