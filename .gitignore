@@ -13,3 +13,4 @@ __pycache__
 # testing
 sandbox.ipynb
 ideas.txt
+tmp/*
