@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- head -->
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title> The Graphanator </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <style>
+        /* body {
+            font-family: Times;
+            margin: 0;
+            padding: 0;
+        } */
+        .sidebar {
+            height: 100vh;
+            width: 200px;
+            background-color: #333;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #555;
+        }
+        .content {
+            margin-left: 200px;
+            padding: 20px;
+        }
+    </style>
+
+    {% block head %} {% endblock %}
+
+</head>
+
+<!-- body -->
+
+<body>
+
+    <div class="sidebar"> </div>
+
+
+    <div class="content">
+        <h1>Welcome to my website</h1>
+        <p>This is the content area. You can put your content here.</p>
+
+        {% block body %} {% endblock %}
+
+    </div>
+</body>
+
+</html>
