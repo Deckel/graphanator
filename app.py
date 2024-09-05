@@ -1,28 +1,44 @@
-from flask import Flask, render_template, url_for
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+from flask_socketio import SocketIO
+from graphanator import Conversation, get_latest_file  # Assuming you move your conversation class into a separate file
+import pandas as pd
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///prod.db'
+socketio = SocketIO(app)
 
-db = SQLAlchemy(app)
+# Load the latest CSV file
+f_path = 'data/' + get_latest_file(f"{os.getcwd()}/data")[0][0]
+df = pd.read_csv(f_path)
 
-class ConversationTemplate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String, nullable=False)
-    content = db.Column(db.String(1000), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+# Initialize conversation
+conversation = Conversation(context=df)
 
-    def __repr__(self):
-        return '<Messsage %r>' % self.id
 
-with app.app_context():
-        db.create_all()
-
-@app.route('/', methods=['POST', 'GET'])
-
+@app.route('/')
 def index():
-    return render_template('index.html', plot_url='static/images/plot.png')
+    return render_template('index.html')
+
+
+# Define API endpoint to receive messages
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    try:
+        user_message = request.json.get("message")
+        conversation.message('user', user_message)
+        
+        # Check if a command was found and needs execution
+        if conversation.response["command"]:
+            conversation.execute_code()
+
+        # Return the response as JSON
+        return jsonify({
+            "response": conversation.response["response"],
+            "command": conversation.response["command"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
-    app.run(debug=True,  port=5003)
+    socketio.run(app, port=5001, debug=True)
