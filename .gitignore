@@ -5,6 +5,7 @@ data/*
 .env
 config.env
 venv/*
+.DS_store
 
 # vscode
 __pycache__
