@@ -73,7 +73,7 @@ class Conversation():
     
   @staticmethod
   def initiaise_connection():
-    return OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
+    return OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
   def process_context(self):
     self.messages.append(

@@ -22,7 +22,7 @@ with app.app_context():
 @app.route('/', methods=['POST', 'GET'])
 
 def index():
-    return render_template('index.html')
+    return render_template('index.html', plot_url='static/images/plot.png')
 
 if __name__ == '__main__':
-    app.run(debug=True,  port=5001)
+    app.run(debug=True,  port=5003)
