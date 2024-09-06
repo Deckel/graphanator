@@ -1,18 +1,18 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO
-from graphanator import Conversation, get_latest_file  # Assuming you move your conversation class into a separate file
+
+from file_manager import FileManager
+from conversation import Conversation
+
 import pandas as pd
 import os
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-# Load the latest CSV file
-f_path = 'data/' + get_latest_file(f"{os.getcwd()}/data")[0][0]
-df = pd.read_csv(f_path)
-
 # Initialize conversation
-conversation = Conversation(context=df)
+context = FileManager()
+conversation = Conversation(context.latest_file)
 
 
 @app.route('/')
@@ -25,16 +25,21 @@ def index():
 def send_message():
     try:
         user_message = request.json.get("message")
-        conversation.message('user', user_message)
-        
-        # Check if a command was found and needs execution
-        if conversation.response["command"]:
-            conversation.execute_code()
 
+        message = {
+            "role": "user",
+            "content": user_message
+        }
+
+        try:
+            conversation.send_message(message)
+        except Exception as e:
+            print(e)
+        
         # Return the response as JSON
         return jsonify({
-            "response": conversation.response["response"],
-            "command": conversation.response["command"]
+            "response": conversation.message_history[len(conversation.message_history) - 1]["content"],
+            "command": conversation.message_history[len(conversation.message_history) - 1]["command"]
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
