@@ -21,7 +21,6 @@ class Conversation:
     self.context = self.generate_context() # context object
 
     # send the first context message
-    print(self.context.message)
     self.send_message(self.context.message)
     
   @staticmethod
