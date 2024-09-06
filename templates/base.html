@@ -1,90 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<!-- head -->
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title> The Graphanator </title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    
+    <title>Chat with GPT</title>
     <style>
-        
-        body {
-            overflow: hidden; /* Prevent scrolling on the page */
-            display: flex; /* Use flexbox for layout */
+        #chat {
+            border: 1px solid #ccc;
+            height: 300px;
+            width: 100%;
+            overflow-y: scroll;
         }
-
-        .sidebar {
-            height: 100vh;
-            width: 200px;
-            background-color: #333;
-            position: fixed;
-            top: 0;
-            left: 0;
-            overflow-x: hidden;
-            padding-top: 20px;
-        }
-
-        .sidebar-header {
-            color: white;
-            font-weight: bold;
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        .chatbox {
-            height: 90vh;
-            width: 20%;
-            background-color: #ddd; /* Light gray background */
-            padding: 20px;
-            box-sizing: border-box; /* Include padding in width */
-            margin-left: 220px; /* Adjusted for sidebar width */
-            margin-top: 40px; /* Adjusted for sidebar width */
-            overflow-y: auto; /* Enable vertical scrollbar if needed */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Inset shadow effect */
-            border-radius: 10px; /* Rounded corners */
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        .graph {
-            flex: 1; /* Take remaining space */
-            height: 90vh;
-            background-color: rgb(255, 255, 255); /* Example background color */
-            margin-top: 40px;
-            box-sizing: border-box; /* Include padding in width */
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        
     </style>
-
-    {% block head %} {% endblock %}
-
 </head>
-
-<!-- body -->
-
 <body>
-    <div class="sidebar"> 
-        <div class="sidebar-header">
-            The Graphanator
-        </div>
-    </div>
-    <div class="chatbox">
-        <h2>Chatbox</h2>
-        <p>This is the chatbox area. You can put your chat content here.</p>
-    </div>
-    <div class="graph">
-        {% block body %} {% endblock %}
-    </div>
-</body>
+    <div id="chat"></div>
+    <input type="text" id="message" placeholder="Type your message here...">
+    <button onclick="sendMessage()">Send</button>
 
+    <script>
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let chat = document.getElementById('chat');
+                let userMessage = document.createElement('div');
+                userMessage.innerText = "You: " + message;
+                chat.appendChild(userMessage);
+
+                let botMessage = document.createElement('div');
+                botMessage.innerText = "Bot: " + data.response;
+                chat.appendChild(botMessage);
+
+                if (data.command) {
+                    let commandMessage = document.createElement('div');
+                    commandMessage.innerHTML = "<b>Code:</b><pre>" + data.command + "</pre>";
+                    chat.appendChild(commandMessage);
+                }
+
+                document.getElementById('message').value = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
 </html>

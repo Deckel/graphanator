@@ -47,14 +47,37 @@ def seperate_cmd(text) -> dict:
       }
     return resp_dict
 
+
+class FileManager:
+    @staticmethod
+    def get_sorted_files(directory):
+        files = [(file, os.path.getctime(os.path.join(directory, file))) for file in os.listdir(directory)]
+        sorted_files = sorted(files, key=lambda x: x[1], reverse=True)
+        return sorted_files
     
-def get_latest_file(directory):
-    # Get list of files in directory with their creation time
-    files = [(file, os.path.getctime(os.path.join(directory, file))) for file in os.listdir(directory)]
-    # Sort files based on creation time in descending order
-    sorted_files = sorted(files, key=lambda x: x[1], reverse=True)
-    return sorted_files
+    @staticmethod
+    def get_latest_file(directory):
+        return FileManager.get_sorted_files(directory)[0]
     
+class ContextProcessor:
+    def __init__(self, context):
+        self.context = context
+
+    def create_initial_message(self):
+        latest_file = FileManager.get_sorted_files(f"{os.getcwd()}/data")[0][0]
+        return {
+            "role": "system",
+            "content": f"""
+                You are my Personal Analyst, take this csv "{latest_file}", 
+                and its columns {self.context.dtypes}.
+                First introduce yourself, then give me a brief description on what this csv represents.
+                Then suggest 3 graphs I could make to understand the dataset.
+
+                Whenever you reply after your first message, you will always give some conversational response and also python code I could
+                execute to produce this graph, your code must assume you need to import the csv from the data/ directory using pandas then make a plot with it, 
+                this code must always be wrapped within ``` ``` so I can copy and paste it.
+            """
+        }
 
 
 class Conversation():
@@ -69,6 +92,7 @@ class Conversation():
     
     self.context = context
     self.client = self.initiaise_connection()
+    self.context_processor = ContextProcessor(context)
     self.process_context()
     
   @staticmethod
@@ -76,23 +100,9 @@ class Conversation():
     return OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
   def process_context(self):
-    self.messages.append(
-      {
-        "role": "system", 
-        "content":
-            f"""
-              You are my Personal Analyst, take this csv "{get_latest_file(f"{os.getcwd()}/data")[0][0]}"', 
-              and its columns {self.context.dtypes}.
-              First introduce yourself, then give me a brief description on what this csv represents.
-              Then suggest 3 graphs I could make to understand the dataset.
-
-              When ever you reply after your first meessage, you will always give some conversational response and also python code I could
-              excute to produce this graph, your code must assume you need to import the csv from the data/ directory using pandas then make a plot with it, 
-              this code must always be wrapped within ``` ``` so I can copy and paste it.
-            """
-      }
-    )
-    
+    initial_message = self.context_processor.create_initial_message()
+    self.messages.append(initial_message)
+   
     completion = self.client.chat.completions.create(
       model="gpt-3.5-turbo",
       messages=self.messages
@@ -163,16 +173,17 @@ if __name__ == '__main__':
   signal.signal(signal.SIGINT, sig_handler)
   signal.signal(signal.SIGTSTP, sig_handler)
   # get path of latest file added to the folder data
-  f_path = 'data/' + get_latest_file(f"{os.getcwd()}/data")[0][0]
+  latest_file = FileManager.get_latest_file(f"{os.getcwd()}/data")[0]
+  f_path = os.path.join('data', latest_file)
   df = pd.read_csv(f_path)
 
-  conversation = Conversation(
-    context = df
-  )
+  conversation = Conversation(context=df)
 
-  while True:  
-    # message the bot
-    conversation.message('user', input(f"message: \n"))
-    # if we found a command execute it
-    if conversation.response["command"]:
-      conversation.execute_code()
+  while True:
+    # Message the bot
+    user_input = input("message: \n")
+    conversation.message('user', user_input)
+    
+    # If we found a command, execute it
+    if conversation.response and conversation.response.get("command"):
+        conversation.execute_code()

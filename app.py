@@ -1,28 +1,49 @@
-from flask import Flask, render_template, url_for
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+from flask_socketio import SocketIO
+
+from file_manager import FileManager
+from conversation import Conversation
+
+import pandas as pd
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///prod.db'
+socketio = SocketIO(app)
 
-db = SQLAlchemy(app)
+# Initialize conversation
+context = FileManager()
+conversation = Conversation(context.latest_file)
 
-class ConversationTemplate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String, nullable=False)
-    content = db.Column(db.String(1000), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return '<Messsage %r>' % self.id
-
-with app.app_context():
-        db.create_all()
-
-@app.route('/', methods=['POST', 'GET'])
-
+@app.route('/')
 def index():
-    return render_template('index.html', plot_url='static/images/plot.png')
+    return render_template('index.html')
+
+
+# Define API endpoint to receive messages
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    try:
+        user_message = request.json.get("message")
+
+        message = {
+            "role": "user",
+            "content": user_message
+        }
+
+        try:
+            conversation.send_message(message)
+        except Exception as e:
+            print(e)
+        
+        # Return the response as JSON
+        return jsonify({
+            "response": conversation.message_history[len(conversation.message_history) - 1]["content"],
+            "command": conversation.message_history[len(conversation.message_history) - 1]["command"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
-    app.run(debug=True,  port=5003)
+    socketio.run(app, port=5001, debug=True)
