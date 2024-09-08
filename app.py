@@ -102,19 +102,21 @@ def plot():
     except Exception as e:
         # itterate attempt counter
         conversation.attempt += 1
+
+        print(conversation.attempt, conversation.attempt_limit)
+
         # if max attempt reach reset conversation, otherwise retry
-        if conversation.attempt == conversation.attempt_limit:
-            logger.critical(f"Maximum attempts reached, resetting conversation to last message...")    
-            conversation.messages = conversation.messages[:-(conversation.attempt+conversation.attempt_limit)]
-            logger.info(conversation.messages[-1]["content"])
+        if conversation.attempt >= conversation.attempt_limit:
+            print(f"Maximum attempts reached, resetting conversation to last message...")    
+            #TODO: Reset the conversation back to the last sucsessfull attempt
         else:
-            logger.critical(f"Execution failed on attempt {conversation.attempt} with error: \n{e}")
+            print(f"Execution failed on attempt {conversation.attempt} with error: \n{e}")
             message = {
                 "role": "user",
                 "content": f"The code failed with the error please rewrite the code to fix it: {e}"
             }
             conversation.send_message(message)
-            logger.critical(f"Regenerating...")
+            print(f"Regenerating...")
             # recursivly try again
             plot()
         
