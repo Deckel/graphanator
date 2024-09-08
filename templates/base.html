@@ -161,7 +161,7 @@
             let messages = document.getElementById('messages');
             let userMessage = document.createElement('div');
             userMessage.className = 'message user';
-            userMessage.innerText = "You: " + message;
+            userMessage.innerText = message;
             messages.appendChild(userMessage);
 
             document.getElementById('message').value = '';
@@ -179,7 +179,6 @@
             .then(data => {
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerHTML = "Bot: ";
                 messages.appendChild(botMessage);
 
                 scrollToBottom();
@@ -216,7 +215,6 @@
                 
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerHTML = "Bot: ";
                 messages.appendChild(botMessage);
                 
                 document.getElementById('message').value = '';
