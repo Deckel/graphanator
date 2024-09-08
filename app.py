@@ -90,21 +90,12 @@ def save_message_history(response):
 
 @app.route('/plot')
 def plot():
-    # Generate a simple plot using Matplotlib
-    # plt.figure(figsize=(5, 4))
-    # plt.plot([0, 1, 2, 3], [10, 20, 25, 30], color='blue', marker='o')
-    # plt.title("Sample Plot")
-    # plt.xlabel("X Axis")
-    # plt.ylabel("Y Axis")
-
     df = conversation.context.df
-
     try:
         print("executing...")
         exec(conversation.message_history[len(conversation.message_history) - 1]["command"])
     except Exception as e:
         print(f"Error {e}")
-
 
     # Save the plot to an in-memory buffer
     buf = io.BytesIO()
