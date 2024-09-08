@@ -24,11 +24,12 @@ def index():
 @app.route('/send_message', methods=['POST'])
 def send_message():
     try:
-        user_message = request.json.get("message")
+        role = request.json.get("role")
+        message = request.json.get("message")
 
         message = {
-            "role": "user",
-            "content": user_message
+            "role": role,
+            "content": message
         }
 
         try:
@@ -44,6 +45,30 @@ def send_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Define API endpoint to get conversation history
+@app.route('/get_conversation_context', methods=['GET'])
+def get_conversation():
+    try:
+        return jsonify(conversation.context.message["content"])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# Define API endpoint to handle start button click
+@app.route('/start_conversation', methods=['POST'])
+def start_conversation():
+    try:
+        system_message = conversation.context.message["content"]
+        message = {
+            "role": "system",
+            "content": system_message
+        }
+        conversation.send_message(message)
+        return jsonify({
+            "response": conversation.message_history[len(conversation.message_history) - 1]["content"],
+            "command": conversation.message_history[len(conversation.message_history) - 1]["command"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     socketio.run(app, port=5001, debug=True)

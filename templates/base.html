@@ -16,17 +16,19 @@
 <body>
     <div id="chat"></div>
     <input type="text" id="message" placeholder="Type your message here...">
-    <button onclick="sendMessage()">Send</button>
-
+    
+    <button id="start-button">Start</button>
+    <button onclick="sendMessage('user')">Send</button>
+    
     <script>
-        function sendMessage() {
+        function sendMessage(role) {
             const message = document.getElementById('message').value;
             fetch('/send_message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ role: role, message: message })
             })
             .then(response => response.json())
             .then(data => {
@@ -52,5 +54,37 @@
             });
         }
     </script>
+
+    <script>
+        document.getElementById('start-button').addEventListener('click', function() {
+            fetch('/start_conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let chat = document.getElementById('chat');
+
+                let botMessage = document.createElement('div');
+                botMessage.innerText = "Bot: " + data.response;
+                chat.appendChild(botMessage);
+
+                if (data.command) {
+                    let commandMessage = document.createElement('div');
+                    commandMessage.innerHTML = "<b>Code:</b><pre>" + data.command + "</pre>";
+                    chat.appendChild(commandMessage);
+                }
+
+                document.getElementById('message').value = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
 </body>
 </html>

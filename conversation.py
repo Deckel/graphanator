@@ -22,8 +22,6 @@ class Conversation:
     self.client = self.initiaise_connection()
     self.context = self.generate_context() # context object
 
-    # send the first context message
-    self.send_message(self.context.message)
     
   @staticmethod
   def initiaise_connection():
