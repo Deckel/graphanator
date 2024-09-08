@@ -1,10 +1,18 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file, Response
 from flask_socketio import SocketIO
+
+from io import BytesIO
 
 from file_manager import FileManager
 from conversation import Conversation
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import json
+import random
+import io
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -35,6 +43,8 @@ def send_message():
             conversation.send_message(message)
         except Exception as e:
             print(e)
+
+        plot()
         
         # Return the response as JSON
         return jsonify({
@@ -77,7 +87,32 @@ def save_message_history(response):
     except Exception as e:
         print(f"Error saving message history: {str(e)}")
     return response
-    
+
+@app.route('/plot')
+def plot():
+    # Generate a simple plot using Matplotlib
+    # plt.figure(figsize=(5, 4))
+    # plt.plot([0, 1, 2, 3], [10, 20, 25, 30], color='blue', marker='o')
+    # plt.title("Sample Plot")
+    # plt.xlabel("X Axis")
+    # plt.ylabel("Y Axis")
+
+    df = conversation.context.df
+
+    try:
+        print("executing...")
+        exec(conversation.message_history[len(conversation.message_history) - 1]["command"])
+    except Exception as e:
+        print(f"Error {e}")
+
+
+    # Save the plot to an in-memory buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    # Return the image as a response with MIME type 'image/png'
+    return Response(buf, mimetype='image/png')
 
 if __name__ == '__main__':
     socketio.run(app, port=5001, debug=True)
