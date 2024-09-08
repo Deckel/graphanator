@@ -16,11 +16,16 @@ class ContextProcessor:
             "content": f"""
                 You are my Personal Analyst, take this csv "{self.file}", 
                 and its columns {self.df.dtypes}.
-                First introduce yourself, then give me a brief description on what this csv represents.
+                For you first message, give me a brief description on what this csv represents.
                 Then suggest 3 graphs I could make to understand the dataset.
 
-                Whenever you reply after your first message, you will always give some conversational response and also python code I could
-                execute to produce this graph, your code must assume you need to import the csv from the data/ directory using pandas then make a plot
-                using the matplotlib libary, this code must always be wrapped within ``` ``` so I can copy and paste it.
+                Every subsequent reply: 
+                1. Always give one and only one peice of Python code 
+                2. Assume you are given a variable df that is a DataFrame of the data
+                3. Always use matplitlib
+                4. Always create a variable fig for the graph
+                5. Wrap code within ``` ``` 
+
+                After which you will give me a brief description about the graph as well as 3 suggestions of other graphs I can make.
             """
         }

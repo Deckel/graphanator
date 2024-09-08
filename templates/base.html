@@ -3,54 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with GPT</title>
+    <title>Graphanator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border-bottom: 1px solid #0056b3;
+        }
+        #header h1 {
+            margin: 0;
+        }
+        #container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: row;
+        }
         #chat {
-            border: 1px solid #ccc;
-            height: 300px;
+            width: 40%;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #chat .message {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+            box-sizing: border-box;
+        }
+        #chat .user {
+            background-color: #d1e7dd;
+            align-self: flex-end;
+            text-align: left;
+        }
+        #chat .bot {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+            text-align: left;
+            position: relative;
+        }
+        #message-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
             width: 100%;
-            overflow-y: scroll;
+            box-sizing: border-box;
+        }
+        #message {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            box-sizing: border-box;
+        }
+        #start-button, #send-button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #send-button {
+            background-color: #28a745;
+        }
+        #plot {
+            width: 60%;
+            height: 100%;
+            object-fit: contain;
+            padding: 10px;
+            box-sizing: border-box;
+            max-height: 100%;
+            display: none; /* Initially hide the image */
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
 </head>
 <body>
-    <div id="chat"></div>
-    <input type="text" id="message" placeholder="Type your message here...">
-    <button onclick="sendMessage()">Send</button>
+    <div id="header">
+        <h1>Graphanator</h1>
+        <button id="start-button">Start</button>
+    </div>
+    <div id="container">
+        <div id="chat">
+            <div id="messages">
+                <!-- Chat messages will appear here -->
+            </div>
+            <div id="message-container">
+                <input type="text" id="message" placeholder="Type your message here...">
+                <button id="send-button" onclick="sendMessage('user')">Send</button>
+            </div>
+        </div>
+        <img id="plot" src="" alt="Dynamic Plot">
+    </div>
 
     <script>
-        function sendMessage() {
+        function scrollToBottom() {
+            const messages = document.getElementById('messages');
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function typeMessage(element, message) {
+            const typingDuration = 1000;
+            const typingSpeed = Math.max(typingDuration / message.length, 10);
+
+            let index = 0;
+            function typeNextChar() {
+                if (index < message.length) {
+                    let char = message.charAt(index);
+                    if (char === '\n') {
+                        element.innerHTML += '<br>';
+                    } else {
+                        element.innerHTML += char;
+                    }
+                    index++;
+                    setTimeout(typeNextChar, typingSpeed);
+                }
+            }
+
+            typeNextChar();
+        }
+
+        function sendMessage(role) {
             const message = document.getElementById('message').value;
+            let messages = document.getElementById('messages');
+            let userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerText = "You: " + message;
+            messages.appendChild(userMessage);
+
+            document.getElementById('message').value = '';
+
+            scrollToBottom();
+
             fetch('/send_message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ role: role, message: message })
             })
             .then(response => response.json())
             .then(data => {
-                let chat = document.getElementById('chat');
-                let userMessage = document.createElement('div');
-                userMessage.innerText = "You: " + message;
-                chat.appendChild(userMessage);
-
                 let botMessage = document.createElement('div');
-                botMessage.innerText = "Bot: " + data.response;
-                chat.appendChild(botMessage);
+                botMessage.className = 'message bot';
+                botMessage.innerHTML = "Bot: ";
+                messages.appendChild(botMessage);
 
-                if (data.command) {
-                    let commandMessage = document.createElement('div');
-                    commandMessage.innerHTML = "<b>Code:</b><pre>" + data.command + "</pre>";
-                    chat.appendChild(commandMessage);
-                }
+                scrollToBottom();
 
-                document.getElementById('message').value = '';
+                typeMessage(botMessage, data.response);
+
+                const plotImage = document.getElementById('plot');
+                const timestamp = new Date().getTime();
+                plotImage.src = '/plot?' + timestamp;
+
+                // Show the image only if the src is valid
+                plotImage.onload = function() {
+                    plotImage.style.display = 'block';
+                };
+                plotImage.onerror = function() {
+                    plotImage.style.display = 'none';
+                };
             })
             .catch(error => {
                 console.error('Error:', error);
             });
         }
+
+        document.getElementById('start-button').addEventListener('click', function() {
+            fetch('/start_conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let messages = document.getElementById('messages');
+                
+                let botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                botMessage.innerHTML = "Bot: ";
+                messages.appendChild(botMessage);
+                
+                document.getElementById('message').value = '';
+
+                scrollToBottom();
+
+                typeMessage(botMessage, data.response);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('message').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage('user');
+            }
+        });
     </script>
 </body>
 </html>
