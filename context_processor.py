@@ -19,8 +19,8 @@ class ContextProcessor:
                 First introduce yourself, then give me a brief description on what this csv represents.
                 Then suggest 3 graphs I could make to understand the dataset.
 
-                Whenever you reply after your first message, you will always give some conversational response and also python code I could
-                execute to produce this graph, your code must assume you need to import the csv from the data/ directory using pandas then make a plot
-                using the matplotlib libary, this code must always be wrapped within ``` ``` so I can copy and paste it.
+                Whenever you reply, always give one and only one peice of Python code wrapped within ``` ``` that I can execute to make a graph, 
+                after which you will give me a brief description about the graph as well as 3 suggestions of other graphs I can make.
+
             """
         }
