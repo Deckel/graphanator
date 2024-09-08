@@ -12,15 +12,17 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            background-color: #ffffff;
+            color: #333333;
         }
         #header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            background-color: #007bff;
-            color: #fff;
-            border-bottom: 1px solid #0056b3;
+            background-color: #f4f4f4;
+            color: #333333;
+            border-bottom: 1px solid #dddddd;
         }
         #header h1 {
             margin: 0;
@@ -33,7 +35,7 @@
         }
         #chat {
             width: 40%;
-            border-right: 1px solid #ddd;
+            border-right: 1px solid #dddddd;
             display: flex;
             flex-direction: column;
             padding: 10px;
@@ -56,22 +58,21 @@
             box-sizing: border-box;
         }
         #chat .user {
-            background-color: #d1e7dd;
+            background-color: #e0e0e0;
             align-self: flex-end;
             text-align: left;
         }
         #chat .bot {
-            background-color: #e2e3e5;
+            background-color: #f5f5f5;
             align-self: flex-start;
             text-align: left;
-            position: relative;
         }
         #message-container {
             display: flex;
             align-items: center;
             padding: 10px;
-            border-top: 1px solid #ddd;
-            background-color: #fff;
+            border-top: 1px solid #dddddd;
+            background-color: #ffffff;
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
             position: relative;
             width: 100%;
@@ -80,7 +81,7 @@
         #message {
             flex: 1;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #cccccc;
             border-radius: 4px;
             margin-right: 10px;
             box-sizing: border-box;
@@ -90,9 +91,10 @@
             border: none;
             border-radius: 4px;
             background-color: #007bff;
-            color: #fff;
+            color: #ffffff;
             cursor: pointer;
             font-size: 14px;
+            margin-left: 5px;
         }
         #send-button {
             background-color: #28a745;
@@ -104,7 +106,7 @@
             padding: 10px;
             box-sizing: border-box;
             max-height: 100%;
-            display: none; /* Initially hide the image */
+            display: none;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
@@ -188,7 +190,6 @@
                 const timestamp = new Date().getTime();
                 plotImage.src = '/plot?' + timestamp;
 
-                // Show the image only if the src is valid
                 plotImage.onload = function() {
                     plotImage.style.display = 'block';
                 };
