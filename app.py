@@ -4,8 +4,7 @@ from flask_socketio import SocketIO
 from file_manager import FileManager
 from conversation import Conversation
 
-import pandas as pd
-import os
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -69,6 +68,16 @@ def start_conversation():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.after_request
+def save_message_history(response):
+    try:
+        with open('message_history.json', 'w') as file:
+            json.dump(conversation.message_history, file)
+    except Exception as e:
+        print(f"Error saving message history: {str(e)}")
+    return response
+    
 
 if __name__ == '__main__':
     socketio.run(app, port=5001, debug=True)

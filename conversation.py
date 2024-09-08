@@ -30,14 +30,21 @@ class Conversation:
 
   @staticmethod
   def get_command(text) -> dict:
-    # returns a dictonary of message and command, if command is not found return message and None
+    # returns a dictionary of message and command, if command is not found return message and None
     try:
       pattern = r'```python([\s\S]*?)```|```([\s\S]*?)```'
-      command = re.search(pattern, text, re.DOTALL).group(1)
+      match = re.search(pattern, text, re.DOTALL)
+      if match:
+        command = match.group(1) or match.group(2)
+        message = text.replace(match.group(0), "").strip()
+      else:
+        command = None
+        message = text
     except Exception as e:
       print(e)
       command = None
-    return command
+      message = text
+    return {"message": message, "command": command}
   
   def generate_context(self):
     context = ContextProcessor(self.context_file)
@@ -82,18 +89,16 @@ class Conversation:
 
     # Append the assistant's respoise to the message history dictionary
     self.message_history[len(self.messages) - 1] = (
-
       {
-        "role": "assistant",
-        "content": completion.choices[0].message.content,
-        "command": self.get_command(completion.choices[0].message.content),
-        "metadata":
-          {
-            "session_credits": self.session_credits,
-            "attempt_number": None #TODO: Include attempt number
-          }
+      "role": "assistant",
+      "content":self.get_command(completion.choices[0].message.content)['message'],
+      "command": self.get_command(completion.choices[0].message.content)["command"],
+      "metadata":
+        {
+        "session_credits": self.session_credits,
+        "attempt_number": None #TODO: Include attempt number
+        }
       }
-
     )
     
 
