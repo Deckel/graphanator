@@ -39,14 +39,14 @@
             padding: 10px;
             box-sizing: border-box;
             background-color: #f9f9f9;
-            overflow: hidden; /* Ensure chat container doesn’t grow beyond available space */
+            overflow: hidden;
         }
         #messages {
             flex: 1;
-            overflow-y: auto; /* Allow messages to scroll */
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Align all messages to the left */
+            align-items: flex-start;
         }
         #chat .message {
             margin: 5px 0;
@@ -57,12 +57,12 @@
         }
         #chat .user {
             background-color: #d1e7dd;
-            align-self: flex-end; /* Align user messages to the right */
+            align-self: flex-end;
             text-align: left;
         }
         #chat .bot {
             background-color: #e2e3e5;
-            align-self: flex-start; /* Align bot messages to the left */
+            align-self: flex-start;
             text-align: left;
             position: relative;
         }
@@ -100,9 +100,11 @@
         #plot {
             width: 60%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             padding: 10px;
             box-sizing: border-box;
+            max-height: 100%;
+            display: none; /* Initially hide the image */
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
@@ -132,14 +134,13 @@
         }
 
         function typeMessage(element, message) {
-            const typingDuration = 1000; // Maximum typing duration in milliseconds
-            const typingSpeed = Math.max(typingDuration / message.length, 10); // Speed in milliseconds per character
+            const typingDuration = 1000;
+            const typingSpeed = Math.max(typingDuration / message.length, 10);
 
             let index = 0;
             function typeNextChar() {
                 if (index < message.length) {
                     let char = message.charAt(index);
-                    // Handle newline characters
                     if (char === '\n') {
                         element.innerHTML += '<br>';
                     } else {
@@ -155,19 +156,16 @@
 
         function sendMessage(role) {
             const message = document.getElementById('message').value;
-            // Display user's message immediately
             let messages = document.getElementById('messages');
             let userMessage = document.createElement('div');
             userMessage.className = 'message user';
             userMessage.innerText = "You: " + message;
             messages.appendChild(userMessage);
 
-            // Clear input field
             document.getElementById('message').value = '';
 
-            scrollToBottom(); // Scroll chat to the bottom when a new message is added
+            scrollToBottom();
 
-            // Fetch and display bot's response
             fetch('/send_message', {
                 method: 'POST',
                 headers: {
@@ -179,18 +177,24 @@
             .then(data => {
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerHTML = "Bot: "; // Initialize with "Bot: "
+                botMessage.innerHTML = "Bot: ";
                 messages.appendChild(botMessage);
 
-                scrollToBottom(); // Scroll chat to the bottom when a new message is added
+                scrollToBottom();
 
-                // Simulate typing effect for bot's response
                 typeMessage(botMessage, data.response);
 
-                // Update the plot after sending the message
                 const plotImage = document.getElementById('plot');
-                const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+                const timestamp = new Date().getTime();
                 plotImage.src = '/plot?' + timestamp;
+
+                // Show the image only if the src is valid
+                plotImage.onload = function() {
+                    plotImage.style.display = 'block';
+                };
+                plotImage.onerror = function() {
+                    plotImage.style.display = 'none';
+                };
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -211,14 +215,13 @@
                 
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerHTML = "Bot: "; // Initialize with "Bot: "
+                botMessage.innerHTML = "Bot: ";
                 messages.appendChild(botMessage);
                 
                 document.getElementById('message').value = '';
 
-                scrollToBottom(); // Scroll chat to the bottom when a new message is added
+                scrollToBottom();
 
-                // Simulate typing effect for bot's response
                 typeMessage(botMessage, data.response);
             })
             .catch(error => {
@@ -227,9 +230,9 @@
         });
 
         document.getElementById('message').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) { // Check if Enter is pressed without Shift
-                event.preventDefault(); // Prevent default behavior (e.g., creating a new line)
-                sendMessage('user'); // Call the sendMessage function
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage('user');
             }
         });
     </script>
