@@ -5,7 +5,7 @@ import os
 import re
 
 class Conversation:
-  def __init__(self, context_file, attempt_limit=4):
+  def __init__(self, context_file, attempt_limit=10):
 
     # config paramaters
     self.attempt_limit = attempt_limit
