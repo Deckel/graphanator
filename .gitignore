@@ -15,6 +15,7 @@ __pycache__
 sandbox.ipynb
 ideas.txt
 tmp/*
+message_history.json
 
 # database
 instance/*
