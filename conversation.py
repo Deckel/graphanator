@@ -64,7 +64,7 @@ class Conversation:
         "metadata":
           {
             "session_credits": self.session_credits,
-            "attempt_number": None
+            "attempt_number": self.attempt
           }
       }
 
