@@ -155,6 +155,19 @@
 
         function sendMessage(role) {
             const message = document.getElementById('message').value;
+            // Display user's message immediately
+            let messages = document.getElementById('messages');
+            let userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerText = "You: " + message;
+            messages.appendChild(userMessage);
+
+            // Clear input field
+            document.getElementById('message').value = '';
+
+            scrollToBottom(); // Scroll chat to the bottom when a new message is added
+
+            // Fetch and display bot's response
             fetch('/send_message', {
                 method: 'POST',
                 headers: {
@@ -164,29 +177,20 @@
             })
             .then(response => response.json())
             .then(data => {
-                let messages = document.getElementById('messages');
-                
-                let userMessage = document.createElement('div');
-                userMessage.className = 'message user';
-                userMessage.innerText = "You: " + message;
-                messages.appendChild(userMessage);
-
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
                 botMessage.innerHTML = "Bot: "; // Initialize with "Bot: "
                 messages.appendChild(botMessage);
 
-                document.getElementById('message').value = '';
-
                 scrollToBottom(); // Scroll chat to the bottom when a new message is added
+
+                // Simulate typing effect for bot's response
+                typeMessage(botMessage, data.response);
 
                 // Update the plot after sending the message
                 const plotImage = document.getElementById('plot');
                 const timestamp = new Date().getTime(); // Add timestamp to prevent caching
                 plotImage.src = '/plot?' + timestamp;
-
-                // Simulate typing effect for bot's response
-                typeMessage(botMessage, data.response);
             })
             .catch(error => {
                 console.error('Error:', error);
