@@ -64,6 +64,7 @@
             background-color: #e2e3e5;
             align-self: flex-start; /* Align bot messages to the left */
             text-align: left;
+            position: relative;
         }
         #message-container {
             display: flex;
@@ -130,6 +131,28 @@
             messages.scrollTop = messages.scrollHeight;
         }
 
+        function typeMessage(element, message) {
+            const typingDuration = 1000; // Maximum typing duration in milliseconds
+            const typingSpeed = Math.max(typingDuration / message.length, 10); // Speed in milliseconds per character
+
+            let index = 0;
+            function typeNextChar() {
+                if (index < message.length) {
+                    let char = message.charAt(index);
+                    // Handle newline characters
+                    if (char === '\n') {
+                        element.innerHTML += '<br>';
+                    } else {
+                        element.innerHTML += char;
+                    }
+                    index++;
+                    setTimeout(typeNextChar, typingSpeed);
+                }
+            }
+
+            typeNextChar();
+        }
+
         function sendMessage(role) {
             const message = document.getElementById('message').value;
             fetch('/send_message', {
@@ -150,7 +173,7 @@
 
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerText = "Bot: " + data.response;
+                botMessage.innerHTML = "Bot: "; // Initialize with "Bot: "
                 messages.appendChild(botMessage);
 
                 document.getElementById('message').value = '';
@@ -161,6 +184,9 @@
                 const plotImage = document.getElementById('plot');
                 const timestamp = new Date().getTime(); // Add timestamp to prevent caching
                 plotImage.src = '/plot?' + timestamp;
+
+                // Simulate typing effect for bot's response
+                typeMessage(botMessage, data.response);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -181,12 +207,15 @@
                 
                 let botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
-                botMessage.innerText = "Bot: " + data.response;
+                botMessage.innerHTML = "Bot: "; // Initialize with "Bot: "
                 messages.appendChild(botMessage);
                 
                 document.getElementById('message').value = '';
 
                 scrollToBottom(); // Scroll chat to the bottom when a new message is added
+
+                // Simulate typing effect for bot's response
+                typeMessage(botMessage, data.response);
             })
             .catch(error => {
                 console.error('Error:', error);
