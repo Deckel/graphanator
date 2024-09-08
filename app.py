@@ -9,6 +9,7 @@ from conversation import Conversation
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+matplotlib.pyplot.figure(dpi=600)
 
 import json
 import random
@@ -99,11 +100,11 @@ def plot():
 
     # Save the plot to an in-memory buffer
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='svg')
     buf.seek(0)
 
     # Return the image as a response with MIME type 'image/png'
-    return Response(buf, mimetype='image/png')
+    return Response(buf, mimetype='image/svg+xml')
 
 if __name__ == '__main__':
     socketio.run(app, port=5001, debug=True)
