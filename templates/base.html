@@ -12,6 +12,7 @@
             overflow-y: scroll;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
 </head>
 <body>
     <div id="chat"></div>
@@ -19,6 +20,9 @@
     
     <button id="start-button">Start</button>
     <button onclick="sendMessage('user')">Send</button>
+    
+    <h1>Dynamic Plot Example</h1>
+    <img id="plot" src="" alt="Dynamic Plot" width="600" height="400">
     
     <script>
         function sendMessage(role) {
@@ -41,14 +45,17 @@
                 botMessage.innerText = "Bot: " + data.response;
                 chat.appendChild(botMessage);
                 document.getElementById('message').value = '';
+
+                // Update the plot after sending the message
+                const plotImage = document.getElementById('plot');
+                const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+                plotImage.src = '/plot?' + timestamp;
             })
             .catch(error => {
                 console.error('Error:', error);
             });
         }
-    </script>
 
-    <script>
         document.getElementById('start-button').addEventListener('click', function() {
             fetch('/start_conversation', {
                 method: 'POST',
@@ -60,7 +67,6 @@
             .then(response => response.json())
             .then(data => {
                 let chat = document.getElementById('chat');
-
                 let botMessage = document.createElement('div');
                 botMessage.innerText = "Bot: " + data.response;
                 chat.appendChild(botMessage);
@@ -71,10 +77,5 @@
             });
         });
     </script>
-
-
-    <h1>Dynamic Plot</h1>
-    <img src="/plot" alt="Plot Image">
-
 </body>
 </html>
