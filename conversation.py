@@ -96,7 +96,7 @@ class Conversation:
       "metadata":
         {
         "session_credits": self.session_credits,
-        "attempt_number": None #TODO: Include attempt number
+        "attempt_number": self.attempt
         }
       }
     )
