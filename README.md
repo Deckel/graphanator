@@ -2,7 +2,7 @@
 
 Graphanator is a powerful and flexible LLM graph generation tool designed to help you create, and visualize complex graphs with ease.
 
-![Graphanator Example](readme_example.png)
+![Graphanator Example](https://github.com/Deckel/graphanator/blob/master/static/images/readme_example.png)
 
 ## Table of Contents
 
