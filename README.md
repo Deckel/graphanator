@@ -2,6 +2,8 @@
 
 Graphanator is a powerful and flexible LLM graph generation tool designed to help you create, and visualize complex graphs with ease.
 
+![Graphanator Example](readme_example.png)
+
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -37,6 +39,9 @@ To install Graphanator, follow these steps:
     ```bash
     pip3 install -r requirements.txt
     ```
+4. Follow the instructions in these [docs](https://platform.openai.com/docs/quickstart) to get an openai api key 
+
+5. Add your OPENAI_API_KEY to a .env file
 
 ## Usage
 
