@@ -1,3 +1,8 @@
+
+# Ignore all CSV files in the data folder except for banana quality
+data/*.csv
+!data/banana_quality.csv
+
 # enviroment files
 .env
 config.env
