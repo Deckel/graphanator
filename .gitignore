@@ -1,6 +1,3 @@
-# csv files
-data/*
-
 # enviroment files
 .env
 config.env
