@@ -5,7 +5,7 @@ import os
 import re
 
 class Conversation:
-  def __init__(self, context_file, attempt_limit=4):
+  def __init__(self, context_file, attempt_limit=10):
 
     # config paramaters
     self.attempt_limit = attempt_limit
@@ -64,7 +64,7 @@ class Conversation:
         "metadata":
           {
             "session_credits": self.session_credits,
-            "attempt_number": None
+            "attempt_number": self.attempt
           }
       }
 
@@ -96,7 +96,7 @@ class Conversation:
       "metadata":
         {
         "session_credits": self.session_credits,
-        "attempt_number": None #TODO: Include attempt number
+        "attempt_number": self.attempt
         }
       }
     )

@@ -12,8 +12,12 @@ import matplotlib.pyplot as plt
 matplotlib.pyplot.figure(dpi=600)
 
 import json
-import random
 import io
+import logging
+
+# create logger with '__name__'
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -96,6 +100,27 @@ def plot():
         print("executing...")
         exec(conversation.message_history[len(conversation.message_history) - 1]["command"])
     except Exception as e:
+        # itterate attempt counter
+        conversation.attempt += 1
+
+        print(conversation.attempt, conversation.attempt_limit)
+
+        # if max attempt reach reset conversation, otherwise retry
+        if conversation.attempt >= conversation.attempt_limit:
+            print(f"Maximum attempts reached, resetting conversation to last message...")    
+            #TODO: Reset the conversation back to the last sucsessfull attempt
+        else:
+            print(f"Execution failed on attempt {conversation.attempt} with error: \n{e}")
+            message = {
+                "role": "user",
+                "content": f"The code failed with the error please rewrite the code to fix it: {e}"
+            }
+            conversation.send_message(message)
+            print(f"Regenerating...")
+            # recursivly try again
+            plot()
+        
+        
         print(f"Error {e}")
 
     # Save the plot to an in-memory buffer
@@ -105,6 +130,9 @@ def plot():
 
     # Return the image as a response with MIME type 'image/png'
     return Response(buf, mimetype='image/svg+xml')
+
+
+
 
 if __name__ == '__main__':
     socketio.run(app, port=5001, debug=True)
